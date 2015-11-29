@@ -15,7 +15,7 @@ Gem::Specification.new do |s|
     Automatically autoload all constants for a module.
   SUMMARY
 
-  s.required_ruby_version     = ">= 2.1.0" # TODO: figure out, when autoload became thread-safe
+  s.required_ruby_version     = ">= 2.0.0" # TODO: figure out, when autoload became thread-safe
   s.files                     =
     Dir['bin/**/*'] +
     Dir['lib/**/*'] +
