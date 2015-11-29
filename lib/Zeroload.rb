@@ -1,5 +1,5 @@
-require 'zeroload/version'
-require 'zeroload/auto'
+require "Zeroload/Version"
+require "Zeroload/auto"
 
 # Zeroload
 # Automatically autoload all constants for a module. This requires a change from
