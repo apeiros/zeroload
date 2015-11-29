@@ -18,19 +18,23 @@ module Zeroload
   # Controls whether Module is automatically patched or not.
   # Zeroload/no_patch.rb sets it to false. It is not advised to use this
   # option, since using zeroload is viral.
+  #
   Patch = true unless defined?(Patch)
 
   # All registered autoloads. A nested hash of the structure:  
   # `{NestedModuleName: {UnnestedModuleName => path}`  
   # e.g. `{"Foo::Bar" => {"Baz" => "/absolute/path/to/Foo/Bar/Baz.rb"}}`
+  #
   Registry = {}
 
   # Module#name as UnboundMethod
+  #
   Name     = Module.instance_method(:name)
 
   # Patches the Module class, adding Module#zeroload!, which invokes
   # 
   # @return self
+  #
   def self.patch!
     ::Module.class_eval do
       def zeroload!(directory=nil, *args)
@@ -42,6 +46,7 @@ module Zeroload
 
     self
   end
+
   patch! if Patch
 
   # Register a module to be zero-loaded.  
@@ -54,6 +59,7 @@ module Zeroload
   #
   # @return mod
   #   Returns the module which is zeroloaded
+  #
   def self.module(mod, directory=nil)
     directory ||= caller_locations.first.absolute_path.sub(/\.[^.]*\z/, "".freeze)
     mod_name    = Name.bind(mod).call rescue nil # some modules don't have a name
@@ -76,8 +82,9 @@ module Zeroload
 
   # Preload all zeroloaded constants for all or a given module.
   #
-  # NOTE! Module#constants properly lists all constants, even if the file
-  # has not yet been loaded.
+  # @note
+  #   Module#constants properly lists all constants, even if the file
+  #   has not yet been loaded.
   #
   # @param [Module, Class] mod
   #   The module whose autoloaded constants should be preloaded
@@ -86,6 +93,7 @@ module Zeroload
   #   level
   #
   # @return nil
+  #
   def self.preload!(mod=nil, recursive=true)
     if mod
       nested_mod_name = Name.bind(mod).call rescue nil # some modules don't have a name
