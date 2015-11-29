@@ -61,6 +61,9 @@ module Zeroload
 
   # Preload all zeroloaded constants for all or a given module.
   #
+  # NOTE! Module#constants properly lists all constants, even if the file
+  # has not yet been loaded.
+  #
   # @param [Module, Class] mod
   #   The module whose autoloaded constants should be preloaded
   # @param [true, false] recursive

@@ -74,3 +74,6 @@ Caveats
   * [see Revision 33078](https://bugs.ruby-lang.org/projects/ruby-trunk/repository/revisions/33078)
 * **Q:** But isn't Kernel#autoload deprecated?
 * **A:** Sadly, the state on this is not entirely clear. But it seems it is no longer deprecated.
+* **Q:** But with autoloaded constants, Module#constants will not report all constants.
+* **A:** That is not correct. Autoloaded (but not yet loaded) constants show up with
+  Module#constants. But you can also use Zeroconf.preload! to load all constants at once.
