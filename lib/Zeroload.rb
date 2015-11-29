@@ -1,33 +1,48 @@
 require "Zeroload/Version"
-require "Zeroload/auto"
 
 # Zeroload
 # Automatically autoload all constants for a module. This requires a change from
 # the current convention of putting class Foo::BarBaz into foo/barbaz.rb (or
 # foo/bar_baz.rb in rails) to using Foo/BarBaz.rb instead.
+#
+# @example Usage
+#     require "Zeroload"
+#
+#     class Foo
+#        zeroload! # calls Zeroload.module(Foo)
+#     end
+#     Foo::Bar # will now load Foo/Bar.rb
+#
 module Zeroload
-  @registry = {}
-  Name      = Module.instance_method(:name)
 
-  class << self
-    attr_reader :registry
-  end
+  # Controls whether Module is automatically patched or not.
+  # Zeroload/no_patch.rb sets it to false. It is not advised to use this
+  # option, since using zeroload is viral.
+  Patch = true unless defined?(Patch)
 
-  begin
-    Object.const_get("Zeroload::Name") # test whether this ruby supports nested constant lookup
-  rescue
+  # All registered autoloads. A nested hash of the structure:  
+  # `{NestedModuleName: {UnnestedModuleName => path}`  
+  # e.g. `{"Foo::Bar" => {"Baz" => "/absolute/path/to/Foo/Bar/Baz.rb"}}`
+  Registry = {}
 
-    # Zeroload.const_get
-    #
-    # Backport ruby 2.0's deep Module#const_get (<= 1.9 fails at lookups for
-    # nested constants).
-    def self.const_get(name)
-      raise NameError, "wrong constant name #{name}" unless name =~ /[A-Z]\w*(?:::[A-Z]\w*)*/
-      eval name
+  # Module#name as UnboundMethod
+  Name     = Module.instance_method(:name)
+
+  # Patches the Module class, adding Module#zeroload!, which invokes
+  # 
+  # @return self
+  def self.patch!
+    ::Module.class_eval do
+      def zeroload!(directory=nil, *args)
+        directory ||= caller_locations.first.absolute_path.sub(/\.[^.]*\z/, "")
+
+        Zeroload.module(self, directory, *args)
+      end
     end
-  else
-    define_singleton_method(:const_get, Module.instance_method(:const_get))
+
+    self
   end
+  patch! if Patch
 
   # Register a module to be zero-loaded.  
   # Use Module#zeroload! instead.
@@ -41,8 +56,8 @@ module Zeroload
   #   Returns the module which is zeroloaded
   def self.module(mod, directory=nil)
     directory ||= caller_locations.first.absolute_path.sub(/\.[^.]*\z/, "".freeze)
-    mod_name    = Name.bind(mod).call.to_sym rescue nil # some modules don't have a name
-    @registry[mod_name] ||= {} if mod_name
+    mod_name    = Name.bind(mod).call rescue nil # some modules don't have a name
+    Registry[mod_name] ||= {} if mod_name
 
     Dir.glob("#{directory}/*.{rb,so,bundle,dll}") do |path|
       name = File.basename(path)
@@ -51,7 +66,7 @@ module Zeroload
 
         warn "#{mod} autoloads #{mod}::#{name} from #{path}" if $VERBOSE
 
-        @registry[mod_name][name] = path if mod_name
+        Registry[mod_name][name] = path if mod_name
         mod.autoload name, path
       end
     end
@@ -73,8 +88,8 @@ module Zeroload
   # @return nil
   def self.preload!(mod=nil, recursive=true)
     if mod
-      mod_name = Name.bind(mod).call.to_sym rescue nil # some modules don't have a name
-      preload  = @registry[mod_name]
+      nested_mod_name = Name.bind(mod).call rescue nil # some modules don't have a name
+      preload         = Registry[nested_mod_name]
 
       if preload
         preload.each_key do |name|
@@ -83,8 +98,8 @@ module Zeroload
         end
       end
     else
-      @registry.dup.each do |mod_name, nesting|
-        loaded = Zeroload.const_get(mod_name.to_s)
+      Registry.dup.each do |nested_mod_name, zeroloaded|
+        loaded = Object.const_get(nested_mod_name) # Object.const_get does not like Symbols for nested modules.
         Zeroload.preload!(loaded, true)
       end
     end
