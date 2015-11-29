@@ -35,7 +35,7 @@ Given the files
 
 The contents of lib/Foo.rb is:
 
-    require "zeroload"
+    require "Zeroload"
 
     module Foo
       zeroload!
