@@ -51,7 +51,8 @@ And the contents of lib/Foo/bar.rb is:
       class Bar
         zeroload! # only necessary if there's stuff nested below 
 
-      # Code of Foo::Bar
+        # Code of Foo::Bar
+      end
     end
 
 
