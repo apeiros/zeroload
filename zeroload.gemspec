@@ -1,10 +1,10 @@
 Gem::Specification.new do |s|
   s.name                      = "zeroload"
-  s.version                   = "0.0.2"
+  s.version                   = "0.0.3"
   s.authors                   = "Stefan Rusterholz"
   s.email                     = "stefan.rusterholz@gmail.com"
   s.homepage                  = "https://github.com/apeiros/jacob"
-  s.license                   = "BSD 2-Clause"
+  s.license                   = "BSD-2-Clause"
 
   s.description               = <<-DESCRIPTION.gsub(/^    /, '').chomp
     Automatically autoload all constants for a module. This requires a change from
